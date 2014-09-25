@@ -37,7 +37,10 @@ function handler(req, res) {
   // media-type identifiers
   m.appCj  = {'content-type':'application/vnd.collection+json'};
   m.appJSON = {'content-type':'application/json'};
-
+  m.appHj = {'content-type':'application/hal+json'};
+  m.ctype = '';
+  m.accept = '';
+  
   // add support for CORS
   m.headers = {
     'Content-Type' : 'application/json',
@@ -54,6 +57,19 @@ function handler(req, res) {
     g.root = 'http://'+req.headers.host;
     m.url = '';
     m.filter = '';
+
+    m.ctype='';
+    m.accept = req.headers.accept.toLowerCase();
+    if(m.accept.indexOf(m.appCj["content-type"])!==-1) {
+      m.ctype = m.appCj;
+    }
+    if(m.ctype==='' && m.accept.indexOf(m.appJSON["content-type"])!==-1) {
+      m.ctype = m.appCj;
+    }
+    if(m.ctype==='' && m.accept.indexOf(m.appHj["content-type"])!==-1) {
+      m.ctype = m.appHj;
+    }
+    m.ctype = m.appCj;
     
     // check for a search query
     if(req.url.indexOf(m.filterUrl)!==-1) {
@@ -104,7 +120,6 @@ function handler(req, res) {
         }
         break;
       case m.itemUrl:
-        console.log(req.method);
         switch(req.method) {
           case 'GET':
             sendItem(m.id);
@@ -141,7 +156,7 @@ function handler(req, res) {
   function sendList() {
     var msg;
 
-    msg = makeCj(g.list);
+    msg = represent(m.ctype["content-type"],g.list);
     
     res.writeHead(200, 'OK', m.headers);
     res.end(JSON.stringify(msg,null,2));
@@ -162,7 +177,7 @@ function handler(req, res) {
       }
     }
 
-    msg = makeCj(list);
+    msg = represent(m.ctype["content-type"],list);
 
     res.writeHead(200, 'OK', m.headers);
     res.end(JSON.stringify(msg, null, 2));
@@ -182,7 +197,7 @@ function handler(req, res) {
       }  
     }
 
-    msg = makeCj(list);
+    msg = represent(m.ctype["content-type"],list);
     
     res.writeHead(200, 'OK', m.headers);
     res.end(JSON.stringify(msg, null, 2));    
@@ -223,7 +238,7 @@ function handler(req, res) {
       list.push(g.list[i]);
     }
 
-    msg = makeCj(list);
+    msg = represent(m.ctype["content-type"],g.list);
 
      
     res.writeHead(200, 'OK', m.headers);
@@ -304,6 +319,28 @@ function handler(req, res) {
     res.end();
   }
 
+  /* handle representation */
+  function represent(t,list) {
+    var msg;
+    switch(t["content-type"]) {
+      case m.appCj["content-type"]:
+        msg = makeCj(list);
+        break;
+      case m.appHj["content-type"]:
+        msg = makeHj(list);
+        break;
+      default:
+        msg = makeCj(list);
+        break;
+    }
+    return msg;
+  }
+
+  /* compose HALjson body */
+  function makeHj(list, error) {
+    return makeCj(list, error);
+  }
+  
   /* compose Cj body */
   function makeCj(list, error) {
     var msg, item, i, x;
