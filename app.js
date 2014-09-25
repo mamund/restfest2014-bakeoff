@@ -13,10 +13,10 @@ g.port = (process.env.PORT ? process.env.PORT : 8484);
 
 /* internal test data */
 g.list = [];
-g.list[0] = {id:0,title:'this is some item',"due-date":'2014-09-25',complete:"no"};
-g.list[1] = {id:1,title:'this is another item',"due-date":'2014-09-25',complete:"no"};
-g.list[2] = {id:2,title:'this is one more item',"due-date":'2014-09-25',complete:"no"};
-g.list[3] = {id:3,title:'this is possibly an item',"due-date":'2014-09-25',complete:"no"};
+g.list[0] = {todoid:0,todoTitle:'this is some item',todoDueDate:'2014-09-25',todoComplete:"no"};
+g.list[1] = {todoid:1,todoTitle:'this is another item',todoDueDate:'2014-09-25',todoComplete:"no"};
+g.list[2] = {todoid:2,todoTitle:'this is one more item',todoDueDate:'2014-09-25',todoComplete:"no"};
+g.list[3] = {todoid:3,todoTitle:'this is possibly an item',todoDueDate:'2014-09-25',todoComplete:"no"};
 
 // main entry point
 function handler(req, res) {
@@ -313,22 +313,23 @@ function handler(req, res) {
     msg.collection.href=m.url;
 
     msg.collection.links = [];
-    msg.collection.links.push({rel:"home",href:"http://localhost:8484"+m.listUrl});
+    msg.collection.links.push({rel:"home, todoList",href:"http://localhost:8484"+m.listUrl});
 
     if(list.length>0) {
       msg.collection.queries = [];
-      msg.collection.queries.push({rel:"search",href:"http://localhost:8484"+m.filterUrl,name:"Search", data:[{name:"title",value:"",prompt:"Title"}]});
+      msg.collection.queries.push({rel:"search, todoSearch",href:"http://localhost:8484"+m.filterUrl,name:"Search", data:[{name:"text",value:"",prompt:"Title"}]});
     }
 
     msg.collection.items = [];
     for(i=0,x=list.length;i<x;i++) {
       item = {};
       item.href = "http://localhost:8484"+m.itemUrl + list[i].id;
+      item.rel = "item, todoEdit";
       item.data = [];
-      item.data.push({name:"id", value:list[i].id, prompt:"ID"});
-      item.data.push({name:"title", value:list[i].title, prompt:"Title"});
-      item.data.push({name:"due-date",value:list[i]["due-date"],prompt:"Due"});
-      item.data.push({name:"complete",value:list[i].complete,prompt:"Complete"});
+      item.data.push({name:"todoid", value:list[i].todoid, prompt:"ID"});
+      item.data.push({name:"todoTitle", value:list[i].todoTitle, prompt:"Title"});
+      item.data.push({name:"todoDueDate",value:list[i].todoDueDate,prompt:"Due"});
+      item.data.push({name:"todoComplete",value:list[i].todoComplete,prompt:"Complete"});
       msg.collection.items.push(item);
     }
 
@@ -337,10 +338,11 @@ function handler(req, res) {
     }
     else {
       msg.collection.template = {};
+      msg.collection.template.rel = "createForm, todoCreate";
       msg.collection.template.data = [];
-      msg.collection.template.data.push({name:"title",value:"",prompt:"Title"})
-      msg.collection.template.data.push({name:"due-date",value:"",prompt:"Due"})
-      msg.collection.template.data.push({name:"complete",value:"",prompt:"Complete"})
+      msg.collection.template.data.push({name:"todoTitle",value:"",prompt:"Title"})
+      msg.collection.template.data.push({name:"todoDueDate",value:"",prompt:"Due"})
+      msg.collection.template.data.push({name:"todoComplete",value:"",prompt:"Complete"})
     }
     return msg;
 
