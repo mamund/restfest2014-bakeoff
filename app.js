@@ -324,7 +324,7 @@ function handler(req, res) {
     for(i=0,x=list.length;i<x;i++) {
       item = {};
       item.href = "http://localhost:8484"+m.itemUrl + list[i].id;
-      item.rel = "item, todoEdit";
+      item.rel = "item, todoRead, todoEdit";
       item.data = [];
       item.data.push({name:"todoid", value:list[i].todoid, prompt:"ID"});
       item.data.push({name:"todoTitle", value:list[i].todoTitle, prompt:"Title"});
