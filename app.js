@@ -8,7 +8,7 @@ var http = require('http');
 var querystring = require('querystring');
 
 var g = {};
-g.host = '0.0.0.0';
+g.host = '';
 g.port = (process.env.PORT ? process.env.PORT : 8484);
 
 /* internal test data */
@@ -51,6 +51,7 @@ function handler(req, res) {
   /* process requests */
   function main() {
 
+    g.root = 'http://'+req.headers.host;
     m.url = '';
     m.filter = '';
     
@@ -156,7 +157,7 @@ function handler(req, res) {
 
     list = [];
     for(i=0,x=g.list.length;i<x;i++) {
-      if(g.list[i].title.indexOf(m.filter)!==-1) {
+      if(g.list[i].todoTitle.indexOf(m.filter)!==-1) {
         list.push(g.list[i]);
       }
     }
@@ -176,7 +177,7 @@ function handler(req, res) {
 
     list = [];
     for(i=0,x=g.list.length;i<x;i++) {
-      if(g.list[i].id==id) {
+      if(g.list[i].todoid==id) {
         list.push(g.list[i]);
       }  
     }
@@ -216,7 +217,7 @@ function handler(req, res) {
 
     list = [];
     for(i=0,x=g.list.length;i<x;i++) {
-      if(g.list[i].id==id) {
+      if(g.list[i].todoid==id) {
         g.list[i] = item;
       }
       list.push(g.list[i]);
@@ -260,7 +261,7 @@ function handler(req, res) {
     var item;
 
     item = t;
-    item.id = g.list.length;
+    item.todid = g.list.length;
     g.list.push(item);
 
     res.writeHead(204, "No content");
@@ -313,18 +314,18 @@ function handler(req, res) {
     msg.collection.href=m.url;
 
     msg.collection.links = [];
-    msg.collection.links.push({rel:"home, todoList",href:"http://localhost:8484"+m.listUrl});
+    msg.collection.links.push({rel:"home, todoList",href:g.root+m.listUrl});
 
     if(list.length>0) {
       msg.collection.queries = [];
-      msg.collection.queries.push({rel:"search, todoSearch",href:"http://localhost:8484"+m.filterUrl,name:"Search", data:[{name:"text",value:"",prompt:"Title"}]});
+      msg.collection.queries.push({rel:"search, todoSearch",href:g.root+m.filterUrl,name:"Search", data:[{name:"text",value:"",prompt:"Title"}]});
     }
 
     msg.collection.items = [];
     for(i=0,x=list.length;i<x;i++) {
       item = {};
-      item.href = "http://localhost:8484"+m.itemUrl + list[i].id;
-      item.rel = "item, todoRead, todoEdit";
+      item.href = g.root+m.itemUrl + list[i].todoid;
+      item.rel = "item, todoRead";
       item.data = [];
       item.data.push({name:"todoid", value:list[i].todoid, prompt:"ID"});
       item.data.push({name:"todoTitle", value:list[i].todoTitle, prompt:"Title"});
@@ -338,7 +339,7 @@ function handler(req, res) {
     }
     else {
       msg.collection.template = {};
-      msg.collection.template.rel = "createForm, todoCreate";
+      msg.collection.template.rel = "createForm, todoCreate, todoEdit";
       msg.collection.template.data = [];
       msg.collection.template.data.push({name:"todoTitle",value:"",prompt:"Title"})
       msg.collection.template.data.push({name:"todoDueDate",value:"",prompt:"Due"})
