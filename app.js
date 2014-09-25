@@ -13,10 +13,10 @@ g.port = (process.env.PORT ? process.env.PORT : 8484);
 
 /* internal test data */
 g.list = [];
-g.list[0] = {id:0,text:'this is some item'};
-g.list[1] = {id:1,text:'this is another item'};
-g.list[2] = {id:2,text:'this is one more item'};
-g.list[3] = {id:3,text:'this is possibly an item'};
+g.list[0] = {id:0,text:'this is some item',"due-date":'2014-09-25',complete:"no"};
+g.list[1] = {id:1,text:'this is another item',"due-date":'2014-09-25',complete:"no"};
+g.list[2] = {id:2,text:'this is one more item',"due-date":'2014-09-25',complete:"no"};
+g.list[3] = {id:3,text:'this is possibly an item',"due-date":'2014-09-25',complete:"no"};
 
 // main entry point
 function handler(req, res) {
@@ -25,10 +25,12 @@ function handler(req, res) {
   m.item = {};
   m.filter = '';
   m.url = '';
+  m.id = '';
   
   // internal urls
   m.homeUrl = '/';
   m.listUrl = '/tasks/';
+  m.itemUrl = '/tasks/item/';
   m.filterUrl = '/tasks/search';
   m.completeUrl = '/tasks/complete/';
 
@@ -49,12 +51,23 @@ function handler(req, res) {
   /* process requests */
   function main() {
 
+    m.url = '';
+    m.filter = '';
+    
     // check for a search query
     if(req.url.indexOf(m.filterUrl)!==-1) {
       m.url = m.filterUrl;
       m.filter = req.url.substring(m.filterUrl.length,255).replace('?text=','');
     }
-    else {
+
+    // check for item query
+    if(req.url.indexOf(m.itemUrl)!==-1) {
+      m.url = m.itemUrl;
+      m.id = req.url.substring(m.itemUrl.length,255);
+    }
+
+    // else...
+    if(m.url==='') { 
       m.url = req.url;
     }
 
@@ -89,6 +102,15 @@ function handler(req, res) {
             break;
         }
         break;
+      case m.itemUrl:
+        switch(req.method) {
+          case 'GET':
+            sendItem(m.id);
+            break;
+          default:
+            showError(405, 'Method not allowed');
+            break; 
+        }
       case m.completeUrl:
         switch(req.method) {
           case 'POST':
@@ -107,7 +129,6 @@ function handler(req, res) {
 
   /* 
     show list of items
-
     /tasks/
  
   */
@@ -122,7 +143,6 @@ function handler(req, res) {
 
   /* 
      search the list
-
      /tasks/search?text={text} 
 
   */
@@ -142,6 +162,26 @@ function handler(req, res) {
     res.end(JSON.stringify(msg, null, 2));
   }
 
+  /*
+    return a single item
+    /tasks/items/{id}
+  */
+  function sendItem(id) {
+    var list, i, x, msg;
+
+    list = [];
+    for(i=0,x=g.list.length;i<x;i++) {
+      if(g.list[i].id==id) {
+        list.push(g.list[i]);
+      }  
+    }
+
+    msg = makeCj(list);
+    
+    res.writeHead(200, 'OK', m.headers);
+    res.end(JSON.stringify(msg, null, 2));    
+  }
+  
   /* 
      add item to list
 
@@ -231,10 +271,12 @@ function handler(req, res) {
     msg.collection.items = [];
     for(i=0,x=list.length;i<x;i++) {
       item = {};
-      //item.href = m.listUrl + i;
+      item.href = "http://localhost:8484"+m.itemUrl + list[i].id;
       item.data = [];
       item.data.push({name:"id", value:list[i].id, prompt:"ID"});
       item.data.push({name:"text", value:list[i].text, prompt:"Text"});
+      item.data.push({name:"due-date",value:list[i]["due-date"],prompt:"Due"});
+      item.data.push({name:"complete",value:list[i].complete,prompt:"Complete"});
       msg.collection.items.push(item);
     }
 
@@ -245,6 +287,8 @@ function handler(req, res) {
       msg.collection.template = {};
       msg.collection.template.data = [];
       msg.collection.template.data.push({name:"text",value:"",prompt:"Text"})
+      msg.collection.template.data.push({name:"due-date",value:"",prompt:"Due"})
+      msg.collection.template.data.push({name:"complete",value:"",prompt:"Complete"})
     }
     return msg;
 
