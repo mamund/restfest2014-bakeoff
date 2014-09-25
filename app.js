@@ -13,10 +13,10 @@ g.port = (process.env.PORT ? process.env.PORT : 8484);
 
 /* internal test data */
 g.list = [];
-g.list[0] = {todoid:0,todoTitle:'this is some item',todoDueDate:'2014-09-25',todoComplete:"no"};
-g.list[1] = {todoid:1,todoTitle:'this is another item',todoDueDate:'2014-09-25',todoComplete:"no"};
-g.list[2] = {todoid:2,todoTitle:'this is one more item',todoDueDate:'2014-09-25',todoComplete:"no"};
-g.list[3] = {todoid:3,todoTitle:'this is possibly an item',todoDueDate:'2014-09-25',todoComplete:"no"};
+g.list[0] = {todoid:0,todoTitle:'this is some item',todoDateDue:'2014-09-25',todoComplete:"no"};
+g.list[1] = {todoid:1,todoTitle:'this is another item',todoDateDue:'2014-09-25',todoComplete:"no"};
+g.list[2] = {todoid:2,todoTitle:'this is one more item',todoDateDue:'2014-09-25',todoComplete:"no"};
+g.list[3] = {todoid:3,todoTitle:'this is possibly an item',todoDateDue:'2014-09-25',todoComplete:"no"};
 
 // main entry point
 function handler(req, res) {
@@ -366,7 +366,7 @@ function handler(req, res) {
       item.data = [];
       item.data.push({name:"todoid", value:list[i].todoid, prompt:"ID"});
       item.data.push({name:"todoTitle", value:list[i].todoTitle, prompt:"Title"});
-      item.data.push({name:"todoDueDate",value:list[i].todoDueDate,prompt:"Due"});
+      item.data.push({name:"todoDateDue",value:list[i].todoDateDue,prompt:"Due"});
       item.data.push({name:"todoComplete",value:list[i].todoComplete,prompt:"Complete"});
       msg.collection.items.push(item);
     }
@@ -379,7 +379,7 @@ function handler(req, res) {
       msg.collection.template.rel = "createForm, todoCreate, todoEdit";
       msg.collection.template.data = [];
       msg.collection.template.data.push({name:"todoTitle",value:"",prompt:"Title"})
-      msg.collection.template.data.push({name:"todoDueDate",value:"",prompt:"Due"})
+      msg.collection.template.data.push({name:"todoDateDue",value:"",prompt:"Due"})
       msg.collection.template.data.push({name:"todoComplete",value:"",prompt:"Complete"})
     }
     return msg;
