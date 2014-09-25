@@ -13,10 +13,10 @@ g.port = (process.env.PORT ? process.env.PORT : 8484);
 
 /* internal test data */
 g.list = [];
-g.list[0] = {id:0,text:'this is some item',"due-date":'2014-09-25',complete:"no"};
-g.list[1] = {id:1,text:'this is another item',"due-date":'2014-09-25',complete:"no"};
-g.list[2] = {id:2,text:'this is one more item',"due-date":'2014-09-25',complete:"no"};
-g.list[3] = {id:3,text:'this is possibly an item',"due-date":'2014-09-25',complete:"no"};
+g.list[0] = {id:0,title:'this is some item',"due-date":'2014-09-25',complete:"no"};
+g.list[1] = {id:1,title:'this is another item',"due-date":'2014-09-25',complete:"no"};
+g.list[2] = {id:2,title:'this is one more item',"due-date":'2014-09-25',complete:"no"};
+g.list[3] = {id:3,title:'this is possibly an item',"due-date":'2014-09-25',complete:"no"};
 
 // main entry point
 function handler(req, res) {
@@ -107,6 +107,9 @@ function handler(req, res) {
           case 'GET':
             sendItem(m.id);
             break;
+          case 'PUT':
+            updateItem(m.id);
+            break;  
           default:
             showError(405, 'Method not allowed');
             break; 
@@ -143,7 +146,7 @@ function handler(req, res) {
 
   /* 
      search the list
-     /tasks/search?text={text} 
+     /tasks/search?title={title} 
 
   */
   function searchList() {
@@ -151,7 +154,7 @@ function handler(req, res) {
 
     list = [];
     for(i=0,x=g.list.length;i<x;i++) {
-      if(g.list[i].text.indexOf(m.filter)!==-1) {
+      if(g.list[i].title.indexOf(m.filter)!==-1) {
         list.push(g.list[i]);
       }
     }
@@ -181,7 +184,44 @@ function handler(req, res) {
     res.writeHead(200, 'OK', m.headers);
     res.end(JSON.stringify(msg, null, 2));    
   }
-  
+
+  /*
+      update an item
+      /tasks/items/{id}
+  */
+  function updateItem(id) {
+    var body = '';
+
+    req.on('data', function(chunk) {
+      body += chunk.toString();
+    });
+
+    req.on('end', function() {
+      console.log(body);
+      //m.item = querystring.parse(body);
+      m.item = JSON.parse(body);
+      sendUpdate(id,m.item);
+    });
+     
+  }
+  function sendUpdate(id,item) {
+    var list, i, x, msg;
+
+    list = [];
+    for(i=0,x=g.list.length;i<x;i++) {
+      if(g.list[i].id==id) {
+        list = item;
+      }
+      else {
+        list.push(g.list[i]);
+      }  
+    }
+
+    msg = makeCj(list);
+    
+    res.writeHead(200, 'OK', m.headers);
+    res.end(JSON.stringify(msg, null, 2));    
+  }
   /* 
      add item to list
 
@@ -191,6 +231,7 @@ function handler(req, res) {
   */
   function addToList() {
     var body = '';
+    var t, item, i, x,n,v;
 
     req.on('data', function(chunk) {
       body += chunk.toString();
@@ -198,18 +239,25 @@ function handler(req, res) {
 
     req.on('end', function() {
       console.log(body);
-      m.item = querystring.parse(body);
-      //m.item = JSON.parse(body);
-      sendAdd();
+      t = JSON.parse(body);
+
+      item = {};
+      for(i=0,x=t.template.data.length;i<x;i++) {
+        n = t.template.data[i].name;
+        v = t.template.data[i].value;
+        console.log(n);
+        console.log(t)
+        item[n]=v;
+        console.log(item);
+      }      
+      sendAdd(item);
     });
   }
-  function sendAdd() {
+  function sendAdd(t) {
     var item;
 
-    item = {};
-    item.link = m.completeControl;
+    item = t;
     item.id = g.list.length;
-    item.text = m.item.text;
     g.list.push(item);
 
     res.writeHead(204, "No content");
@@ -265,7 +313,7 @@ function handler(req, res) {
 
     if(list.length>0) {
       msg.collection.queries = [];
-      msg.collection.queries.push({rel:"search",href:"http://localhost:8484"+m.filterUrl,name:"Search", data:[{name:"text",value:"",prompt:"Text"}]});
+      msg.collection.queries.push({rel:"search",href:"http://localhost:8484"+m.filterUrl,name:"Search", data:[{name:"title",value:"",prompt:"Title"}]});
     }
 
     msg.collection.items = [];
@@ -274,7 +322,7 @@ function handler(req, res) {
       item.href = "http://localhost:8484"+m.itemUrl + list[i].id;
       item.data = [];
       item.data.push({name:"id", value:list[i].id, prompt:"ID"});
-      item.data.push({name:"text", value:list[i].text, prompt:"Text"});
+      item.data.push({name:"title", value:list[i].title, prompt:"Title"});
       item.data.push({name:"due-date",value:list[i]["due-date"],prompt:"Due"});
       item.data.push({name:"complete",value:list[i].complete,prompt:"Complete"});
       msg.collection.items.push(item);
@@ -286,7 +334,7 @@ function handler(req, res) {
     else {
       msg.collection.template = {};
       msg.collection.template.data = [];
-      msg.collection.template.data.push({name:"text",value:"",prompt:"Text"})
+      msg.collection.template.data.push({name:"title",value:"",prompt:"Title"})
       msg.collection.template.data.push({name:"due-date",value:"",prompt:"Due"})
       msg.collection.template.data.push({name:"complete",value:"",prompt:"Complete"})
     }
