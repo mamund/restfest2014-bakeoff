@@ -103,6 +103,7 @@ function handler(req, res) {
         }
         break;
       case m.itemUrl:
+        console.log(req.method);
         switch(req.method) {
           case 'GET':
             sendItem(m.id);
@@ -114,6 +115,7 @@ function handler(req, res) {
             showError(405, 'Method not allowed');
             break; 
         }
+        break;
       case m.completeUrl:
         switch(req.method) {
           case 'POST':
@@ -197,10 +199,15 @@ function handler(req, res) {
     });
 
     req.on('end', function() {
-      console.log(body);
-      //m.item = querystring.parse(body);
-      m.item = JSON.parse(body);
-      sendUpdate(id,m.item);
+      t = JSON.parse(body);
+
+      item = {};
+      for(i=0,x=t.template.data.length;i<x;i++) {
+        n = t.template.data[i].name;
+        v = t.template.data[i].value;
+        item[n]=v;
+      }      
+      sendUpdate(id,item);
     });
      
   }
@@ -210,18 +217,18 @@ function handler(req, res) {
     list = [];
     for(i=0,x=g.list.length;i<x;i++) {
       if(g.list[i].id==id) {
-        list = item;
+        g.list[i] = item;
       }
-      else {
-        list.push(g.list[i]);
-      }  
+      list.push(g.list[i]);
     }
 
     msg = makeCj(list);
-    
+
+     
     res.writeHead(200, 'OK', m.headers);
     res.end(JSON.stringify(msg, null, 2));    
   }
+  
   /* 
      add item to list
 
@@ -238,17 +245,13 @@ function handler(req, res) {
     });
 
     req.on('end', function() {
-      console.log(body);
       t = JSON.parse(body);
 
       item = {};
       for(i=0,x=t.template.data.length;i<x;i++) {
         n = t.template.data[i].name;
         v = t.template.data[i].value;
-        console.log(n);
-        console.log(t)
         item[n]=v;
-        console.log(item);
       }      
       sendAdd(item);
     });
@@ -273,6 +276,7 @@ function handler(req, res) {
   */
   function completeItem() {
     var body = '';
+    var t, item, i, x,n,v;
 
     req.on('data', function(chunk) {
       body += chunk.toString();
