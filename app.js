@@ -39,6 +39,7 @@ function handler(req, res) {
   m.appJSON = {'content-type':'application/json'};
   m.appHj = {'content-type':'application/hal+json'};
   m.ctype = '';
+  m.cflag=false;
   m.accept = '';
   
   // add support for CORS
@@ -58,18 +59,25 @@ function handler(req, res) {
     m.url = '';
     m.filter = '';
 
+    m.cflag = false;
     m.ctype='';
     m.accept = req.headers.accept.toLowerCase();
     if(m.accept.indexOf(m.appCj["content-type"])!==-1) {
       m.ctype = m.appCj;
+      m.cflag=true;
     }
-    if(m.ctype==='' && m.accept.indexOf(m.appJSON["content-type"])!==-1) {
+    if(m.cflag===false && m.accept.indexOf(m.appJSON["content-type"])!==-1) {
       m.ctype = m.appCj;
+      m.cflag=true;
     }
-    if(m.ctype==='' && m.accept.indexOf(m.appHj["content-type"])!==-1) {
+    if(m.cflag===false && m.accept.indexOf(m.appHj["content-type"])!==-1) {
       m.ctype = m.appHj;
+      m.cflag = true;
     }
-    m.ctype = m.appCj;
+    if(m.cflag===false) {
+      m.ctype = m.appCj;
+      m.cflag = true;
+    }
     
     // check for a search query
     if(req.url.indexOf(m.filterUrl)!==-1) {
@@ -322,7 +330,7 @@ function handler(req, res) {
   /* handle representation */
   function represent(t,list) {
     var msg;
-    switch(t["content-type"]) {
+    switch(t) {
       case m.appCj["content-type"]:
         msg = makeCj(list);
         break;
@@ -338,7 +346,27 @@ function handler(req, res) {
 
   /* compose HALjson body */
   function makeHj(list, error) {
-    return makeCj(list, error);
+    var msg, coll, item, i, x;
+
+    msg = {};
+    msg._embedded = {};
+    msg._embedded.todos = [];
+
+    for(i=0,x=list.length;i<x;i++) {
+      item = {};
+      item.todoid = list[i].todoid;
+      item.todoTitle = list[i].todoTitle;
+      item.todoDateDue = list[i].todoDateDue;
+      item.todoComplete = list[i].todoComplete;
+      item._links = {};
+      item._links.self = {};
+      item._links.self.href = g.root+m.itemUrl + list[i].todoid;
+      item._links.profile = {};
+      item._links.profile.href = g.root+"/alps.xml";         
+      msg._embedded.todos.push(item);
+    }
+
+    return msg;
   }
   
   /* compose Cj body */
