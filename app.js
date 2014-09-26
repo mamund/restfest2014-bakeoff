@@ -1,6 +1,7 @@
 /*
   RESTFest 2014 BakeOff Server
-  to-do for negotiated media types 
+  to-do for negotiated media types
+  supports Cj and HALj 
  */
 
 var fs = require('fs');
