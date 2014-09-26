@@ -349,24 +349,36 @@ function handler(req, res) {
     var msg, coll, item, i, x;
 
     msg = {};
-    msg._embedded = {};
-    msg._embedded.todos = [];
 
-    for(i=0,x=list.length;i<x;i++) {
-      item = {};
-      item.todoid = list[i].todoid;
-      item.todoTitle = list[i].todoTitle;
-      item.todoDateDue = list[i].todoDateDue;
-      item.todoComplete = list[i].todoComplete;
-      item._links = {};
-      item._links.self = {};
-      item._links.self.href = g.root+m.itemUrl + list[i].todoid;
-      item._links.profile = {};
-      item._links.profile.href = g.root+"/alps.xml";         
-      msg._embedded.todos.push(item);
+    if(list.length===1) {
+      msg = makeHjItem(list[0]);
+    }
+    else {
+      msg._embedded = {};
+      msg._embedded.todos = [];
+      for(i=0,x=list.length;i<x;i++) {
+        item = makeHjItem(list[i]);
+        msg._embedded.todos.push(item);
+      }
     }
 
     return msg;
+  }
+  function makeHjItem(list) {
+    var item;
+
+    item = {};
+    item.todoid = list.todoid;
+    item.todoTitle = list.todoTitle;
+    item.todoDateDue = list.todoDateDue;
+    item.todoComplete = list.todoComplete;
+    item._links = {};
+    item._links.self = {};
+    item._links.self.href = g.root+m.itemUrl + list.todoid;
+    item._links.profile = {};
+    item._links.profile.href = g.root+"/alps.xml";         
+
+    return item;    
   }
   
   /* compose Cj body */
