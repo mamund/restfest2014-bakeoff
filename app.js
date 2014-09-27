@@ -377,7 +377,7 @@ function handler(req, res) {
     item._links.self = {};
     item._links.self.href = g.root+m.itemUrl + list.todoid;
     item._links.profile = {};
-    item._links.profile.href = g.root+"/alps.xml";         
+    item._links.profile.href = 'https://rawgit.com/mamund/0273c7b652a97baaedb2/raw/a8231a1475457e6b6fee905267889abd76f102a3/restfest2014-todo.xml';         
 
     return item;    
   }
