@@ -403,7 +403,7 @@ function handler(req, res) {
     for(i=0,x=list.length;i<x;i++) {
       item = {};
       item.href = g.root+m.itemUrl + list[i].todoid;
-      item.rel = "item, todoRead";
+      item.rel = "item, todoRead, todoDelete";
       item.data = [];
       item.data.push({name:"todoid", value:list[i].todoid, prompt:"ID"});
       item.data.push({name:"todoTitle", value:list[i].todoTitle, prompt:"Title"});
@@ -417,7 +417,7 @@ function handler(req, res) {
     }
     else {
       msg.collection.template = {};
-      msg.collection.template.rel = "createForm, todoCreate, todoEdit";
+      msg.collection.template.rel = "createForm, todoComplete, todoCreate, todoEdit, todoEditDateDue";
       msg.collection.template.data = [];
       msg.collection.template.data.push({name:"todoTitle",value:"",prompt:"Title"})
       msg.collection.template.data.push({name:"todoDateDue",value:"",prompt:"Due"})
